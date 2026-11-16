@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   PRESET_BOX,
   PRINT_DPI,
@@ -13,6 +13,7 @@ import {
 } from '../model/layout'
 import { estimateBytes, exportPdf, type Quality } from '../pdf/export'
 import { useActivePage, useDoc, useSelectedField, type Field } from '../store/doc'
+import { addProject, currentProject, deleteProject, projectStats, switchProject } from '../store/persist'
 import { Key, LcdField, Led, Panel, Segmented } from '../ui/controls'
 import { IconImage, IconLock, IconPlus, IconPrint, IconRatio, IconTrash, IconUnlink } from '../ui/icons'
 import { attachTo } from './attach'
@@ -23,12 +24,89 @@ export function Toolbar() {
   const field = useSelectedField()
   return (
     <aside className="inspector" aria-label="Toolbar">
+      <ProjectsPanel />
       <RatioPanel />
       <SizePanel />
       {field && <FieldPanel key={field.id} field={field} />}
       <PagesPanel />
       <PrintPanel />
     </aside>
+  )
+}
+
+const shortDate = (t: number) => new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: '2-digit' })
+
+function ProjectsPanel() {
+  const projectId = useDoc((s) => s.projectId)
+  const projectName = useDoc((s) => s.projectName)
+  const setProjectName = useDoc((s) => s.setProjectName)
+  const projects = useDoc((s) => s.projects)
+  const pages = useDoc((s) => s.pages)
+  // The open project's entry shows its live pages.
+  const list = useMemo(() => projects.map((p) => (p.id === projectId ? { ...p, pages } : p)), [projects, projectId, pages])
+  const [draft, setDraft] = useState<string | null>(null)
+  const nameRef = useRef<HTMLInputElement>(null)
+
+  const create = async () => {
+    await addProject()
+    setTimeout(() => nameRef.current?.focus(), 50)
+  }
+  const remove = () => {
+    const s = projectStats(currentProject(useDoc.getState()))
+    const label = projectName || 'this untitled project'
+    if (!window.confirm(`Delete “${label}”? Its ${s.pages} page${s.pages === 1 ? '' : 's'} and layout go for good${s.photos ? ` (${s.photos} photo${s.photos === 1 ? '' : 's'} placed; your original files are untouched)` : ''}.`))
+      return
+    void deleteProject(projectId)
+  }
+
+  return (
+    <Panel num="00" it="PROGETTI" en={`Projects · ${list.length}`}>
+      <label className="field">
+        <span className="field-label">Project name</span>
+        <span className="lcd">
+          <input
+            ref={nameRef}
+            value={draft ?? projectName}
+            placeholder="Name this project, e.g. Tenerife trip"
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={() => {
+              if (draft !== null) setProjectName(draft.trim().slice(0, 80))
+              setDraft(null)
+            }}
+            onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+          />
+        </span>
+      </label>
+      {list.length > 1 && (
+        <div className="project-list">
+          {list.map((p) => {
+            const st = projectStats(p)
+            const open = p.id === projectId
+            return (
+              <Key key={p.id} className="page-key project-key" pressed={open} onClick={() => void switchProject(p.id)} title={open ? 'The open project' : `Open ${p.name || 'untitled project'}`}>
+                <PageThumb fields={p.pages[0]?.fields ?? []} />
+                <span className="stack">
+                  <span className="project-name">{(open ? draft ?? projectName : p.name) || 'Untitled'}</span>
+                  <span className="sub">
+                    {st.pages} page{st.pages === 1 ? '' : 's'} · {st.photos} photo{st.photos === 1 ? '' : 's'} · {shortDate(p.updated)}
+                  </span>
+                </span>
+              </Key>
+            )
+          })}
+        </div>
+      )}
+      <div className="grid-2">
+        <Key onClick={() => void create()}>
+          <IconPlus />
+          New project
+        </Key>
+        <Key onClick={remove}>
+          <IconTrash />
+          Delete
+        </Key>
+      </div>
+    </Panel>
   )
 }
 
@@ -231,37 +309,23 @@ function PageThumb({ fields }: { fields: Field[] }) {
 }
 
 function PrintPanel() {
-  const fileName = useDoc((s) => s.fileName)
-  const setFileName = useDoc((s) => s.setFileName)
+  const projectName = useDoc((s) => s.projectName)
   const quality = useDoc((s) => s.quality)
   const setQuality = useDoc((s) => s.setQuality)
   const pages = useDoc((s) => s.pages)
   useDoc((s) => s.assets)
   const exporting = useDoc((s) => s.exporting)
-  const [draft, setDraft] = useState<string | null>(null)
   const photos = pages.reduce((n, p) => n + p.fields.filter((f) => f.photo).length, 0)
   const mb = estimateBytes(quality) / 1024 / 1024
 
   return (
     <Panel num="05" it="STAMPA" en="Export PDF">
-      <label className="field">
-        <span className="field-label">Name</span>
-        <span className="lcd">
-          <input
-            value={draft ?? fileName}
-            placeholder="e.g. Tenerife trip"
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={() => {
-              if (draft !== null) setFileName(draft.trim().slice(0, 80))
-              setDraft(null)
-            }}
-            onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-          />
-        </span>
+      <div className="field">
+        <span className="field-label">File name · from the project name</span>
         <span className="file-preview" title="The PDF is dated the day you export it">
-          {pdfFileName(draft ?? fileName)}
+          {pdfFileName(projectName)}
         </span>
-      </label>
+      </div>
       <label className="field">
         <span className="field-label">Quality</span>
         <Segmented<Quality>

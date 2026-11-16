@@ -33,7 +33,7 @@ export async function attachTo(field: Field) {
   if (!file) return
   const { showAlert, attachPhoto, say } = useDoc.getState()
 
-  let m: { w: number; h: number; url: string }
+  let m: { w: number; h: number; url: string; blob: Blob }
   try {
     m = await measure(file)
   } catch {
@@ -54,6 +54,6 @@ export async function attachTo(field: Field) {
   }
 
   const assetId = uid()
-  attachPhoto(field.id, { assetId, name: file.name, pxW: m.w, pxH: m.h }, { blob: file, url: m.url, w: m.w, h: m.h })
+  attachPhoto(field.id, { assetId, name: file.name, pxW: m.w, pxH: m.h }, { blob: file, preview: m.blob, url: m.url, w: m.w, h: m.h })
   say(`${file.name} placed`)
 }

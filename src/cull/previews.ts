@@ -26,7 +26,7 @@ export async function downscale(file: Blob, edge: number, quality: number) {
     const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', quality))
     canvas.width = canvas.height = 0
     if (!blob) throw new Error('encode')
-    return { url: URL.createObjectURL(blob), w: d.w, h: d.h }
+    return { url: URL.createObjectURL(blob), blob, w: d.w, h: d.h }
   } finally {
     d.close()
   }

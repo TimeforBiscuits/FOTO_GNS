@@ -31,10 +31,23 @@ export interface Page {
 }
 
 export interface Asset {
+  /** The original file, untouched. */
   blob: Blob
+  /** An upright, screen-sized copy for the sheet. */
+  preview?: Blob
   url: string
   w: number
   h: number
+}
+
+/** A project: a named set of A4 pages. */
+export interface Project {
+  id: string
+  name: string
+  pages: Page[]
+  quality: Quality
+  created: number
+  updated: number
 }
 
 export interface Message {
@@ -49,11 +62,15 @@ export interface Alert {
 }
 
 export interface DocState {
+  /** The open project. Its pages, name and quality are the live fields below. */
+  projectId: string
+  /** Every project, newest first. The open one's entry is refreshed on save and switch. */
+  projects: Project[]
   pages: Page[]
   activePage: number
   selectedId: string | null
   ratio: RatioId
-  fileName: string
+  projectName: string
   quality: Quality
   assets: Record<string, Asset>
   message: Message | null
@@ -72,27 +89,53 @@ export interface DocState {
   addPage: () => void
   deletePage: (index: number) => void
   setActivePage: (index: number) => void
-  setFileName: (name: string) => void
+  setProjectName: (name: string) => void
   setQuality: (q: Quality) => void
   say: (text: string, tone?: Message['tone']) => void
   showAlert: (a: Alert | null) => void
   setExporting: (on: boolean) => void
   setReady: (f: File | null) => void
-  load: (pages: Page[], assets: Record<string, Asset>, fileName: string, quality?: Quality) => void
+  /** Open a project (its photos already loaded), replacing what's on screen. */
+  openProject: (project: Project, assets: Record<string, Asset>, projects: Project[]) => void
 }
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4)
 
 const newPage = (): Page => ({ id: uid(), fields: [] })
 
+export const newProject = (name = ''): Project => {
+  const now = Date.now()
+  return { id: uid(), name, pages: [newPage()], quality: 'original', created: now, updated: now }
+}
+
+/** The open project as it stands now, from the live fields. */
+export const currentProject = (s: DocState): Project => {
+  const stored = s.projects.find((p) => p.id === s.projectId)
+  return {
+    id: s.projectId,
+    name: s.projectName,
+    pages: s.pages,
+    quality: s.quality,
+    created: stored?.created ?? Date.now(),
+    updated: stored?.updated ?? Date.now(),
+  }
+}
+
+/** All projects, with the open one up to date. */
+export const allProjects = (s: DocState): Project[] => s.projects.map((p) => (p.id === s.projectId ? { ...currentProject(s), updated: p.updated } : p))
+
+const first = newProject()
+
 const mapActive = (s: DocState, f: (p: Page) => Page) => s.pages.map((p, i) => (i === s.activePage ? f(p) : p))
 
 export const useDoc = create<DocState>((set, get) => ({
-  pages: [newPage()],
+  projectId: first.id,
+  projects: [first],
+  pages: first.pages,
   activePage: 0,
   selectedId: null,
   ratio: '3x2',
-  fileName: '',
+  projectName: '',
   quality: 'original',
   assets: {},
   message: null,
@@ -149,7 +192,7 @@ export const useDoc = create<DocState>((set, get) => ({
 
   setActivePage: (activePage) => set({ activePage, selectedId: null }),
 
-  setFileName: (fileName) => set({ fileName }),
+  setProjectName: (projectName) => set({ projectName }),
 
   setQuality: (quality) => set({ quality }),
 
@@ -161,8 +204,17 @@ export const useDoc = create<DocState>((set, get) => ({
 
   setReady: (ready) => set({ ready }),
 
-  load: (pages, assets, fileName, quality = 'original') =>
-    set({ pages: pages.length ? pages : [newPage()], assets, fileName, quality, activePage: 0, selectedId: null }),
+  openProject: (project, assets, projects) =>
+    set({
+      projectId: project.id,
+      projects,
+      pages: project.pages.length ? project.pages : [newPage()],
+      projectName: project.name,
+      quality: project.quality,
+      assets,
+      activePage: 0,
+      selectedId: null,
+    }),
 }))
 
 export const useActivePage = () => useDoc((s) => s.pages[s.activePage])

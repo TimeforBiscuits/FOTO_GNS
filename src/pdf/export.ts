@@ -207,7 +207,7 @@ export async function exportPdf() {
     s.showAlert({ title: 'Nothing to print', body: 'Attach a photo to at least one field first. Empty fields are left out of the PDF.' })
     return
   }
-  const name = pdfFileName(s.fileName)
+  const name = pdfFileName(s.projectName)
 
   // Chrome and Edge ask for a location first, while the click still counts.
   let handle: Writable | null = null

@@ -43,6 +43,13 @@ marks come back.
 
 ## Impaginazione: layout
 
+**Progetti** (top of the toolbar): each project is its own named set of A4
+pages, with its own photos and PDF quality, e.g. *Tenerife trip* or
+*Rainy weekend*. Tap a project to open it, **New project** to start one, and
+**Delete** to remove the open one (with a confirmation; your original photo
+files are never touched). The project's name is also the PDF's name. A layout
+made before projects existed becomes the first project.
+
 1. **Formato:** pick an aspect ratio: 3×2, 2×3, 16×9 or 1×1.
 2. **Misura:** pick a size, and a field appears on the page in the first free spot.
    - **Free:** resize it by dragging any corner. The ratio stays locked.
@@ -55,8 +62,8 @@ marks come back.
    field's (within 1 %), it's refused with a message. Nothing is ever cropped
    or stretched to fit.
 5. Add more A4 pages as needed (**Pagine**, or **+ Page** at the top).
-6. **Stampa / Export PDF.** Type a name and the PDF is called
-   `DDMMYY_name.pdf`, dated the day you export: "Tenerife trip" on
+6. **Stampa / Export PDF.** The PDF is named after the project,
+   `DDMMYY_project-name.pdf`, dated the day you export: "Tenerife trip" on
    16 November 2026 → `161126_tenerife-trip.pdf`. In Chrome on the Mac it asks where to save. In
    Safari it downloads. On iPad it opens the share sheet, where you choose
    *Save to Files*.

@@ -22,7 +22,9 @@ describe('jpeg header', () => {
     // where the stored picture's top-left corner (u 0, v 1) ends up
     const tl = (o: number) => {
       const [a, b, c, d, e, f] = orientationMatrix(o)
-      return [a * 0 + c * 1 + e, b * 0 + d * 1 + f]
+      void a
+      void b
+      return [c + e, d + f]
     }
     expect(tl(1)).toEqual([0, 1])
     expect(tl(3)).toEqual([1, 0])
