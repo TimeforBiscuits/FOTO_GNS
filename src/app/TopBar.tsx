@@ -1,6 +1,7 @@
 import { exportPdf } from '../pdf/export'
 import { useDoc } from '../store/doc'
-import { Key } from '../ui/controls'
+import { useView, type ViewId } from '../store/view'
+import { Key, Segmented } from '../ui/controls'
 import { IconChevron, IconPlus, IconPrint } from '../ui/icons'
 
 export function TopBar() {
@@ -10,6 +11,8 @@ export function TopBar() {
   const addPage = useDoc((s) => s.addPage)
   const exporting = useDoc((s) => s.exporting)
   const pad = (n: number) => String(n).padStart(2, '0')
+  const view = useView((s) => s.view)
+  const setView = useView((s) => s.setView)
 
   return (
     <header className="topbar">
@@ -22,6 +25,20 @@ export function TopBar() {
         </div>
       </div>
 
+      <div className="topbar-group">
+        <span className="topbar-label">Vista</span>
+        <Segmented<ViewId>
+          label="Section"
+          value={view}
+          onChange={setView}
+          options={[
+            { value: 'cull', label: 'Selezione', sub: 'curation' },
+            { value: 'layout', label: 'Impaginazione', sub: 'layout' },
+          ]}
+        />
+      </div>
+
+      {view === 'layout' && (
       <div className="topbar-group" role="group" aria-label="Page">
         <span className="topbar-label">Pagina</span>
         <Key square size="sm" onClick={() => setActivePage(active - 1)} disabled={active === 0} aria-label="Previous page">
@@ -40,13 +57,16 @@ export function TopBar() {
           Page
         </Key>
       </div>
+      )}
 
       <div className="spacer" />
 
+      {view === 'layout' && (
       <Key variant="signal" onClick={() => void exportPdf()} disabled={exporting} title="Export a 300 dpi PDF">
         <IconPrint />
         Stampa
       </Key>
+      )}
     </header>
   )
 }

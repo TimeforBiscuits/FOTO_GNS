@@ -59,6 +59,33 @@ export const IconChevron = ({ dir }: { dir: 'left' | 'right' }) => (
   </Svg>
 )
 
+export const IconFolder = () => (
+  <Svg>
+    <path d="M3 5 H10 L12 7.5 H21 V19 H3 Z" />
+  </Svg>
+)
+
+export const IconStar = ({ filled }: { filled?: boolean }) => (
+  <Svg>
+    <path d="M12 3 L14.6 9 L21 9.6 L16.2 13.8 L17.6 20.2 L12 16.9 L6.4 20.2 L7.8 13.8 L3 9.6 L9.4 9 Z" fill={filled ? 'currentColor' : 'none'} strokeLinejoin="round" strokeWidth={1.8} />
+  </Svg>
+)
+
+export const IconX = () => (
+  <Svg>
+    <path d="M6 6 L18 18 M18 6 L6 18" strokeWidth={2.5} />
+  </Svg>
+)
+
+export const IconGrid = () => (
+  <Svg>
+    <rect x="3" y="3" width="7" height="7" />
+    <rect x="14" y="3" width="7" height="7" />
+    <rect x="3" y="14" width="7" height="7" />
+    <rect x="14" y="14" width="7" height="7" />
+  </Svg>
+)
+
 /** The ratio's own shape, as large as the 24-unit box allows. */
 export const IconRatio = ({ ratio }: { ratio: RatioId }) => {
   const { w, h } = RATIOS[ratio]

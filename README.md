@@ -10,7 +10,36 @@ to the Home Screen). Photos never leave the device.
 
 **Live:** https://timeforbiscuits.github.io/FOTO_GNS/
 
-## How it works
+FOTO_GNS has two halves, chosen with the tabs at the top: **Selezione**
+(curation) and **Impaginazione** (layout).
+
+## Selezione: curation
+
+Go through a folder of JPGs and keep only the ones you want.
+
+1. **Open folder** (Mac) or **Open JPGs from Files** (iPad: go into the
+   folder, tap *Select*, then *Select All*). Other file types are ignored.
+2. Small previews are built in the background, starting with the photos near
+   the one you're looking at. The big view shows a sharper preview of the
+   current photo.
+3. Mark keepers (*selezioni*): **P** keep, **X** leave behind, **Space**
+   toggle, **← →** move, **G** grid / loupe. On iPad, swipe to move and
+   double-tap to keep, or use the ★ on any thumbnail. *Next photo after
+   deciding* moves on automatically.
+4. **Save selezioni** saves exact, untouched copies of the keepers:
+   - **Chrome on the Mac:** into a folder you choose.
+   - **iPad:** through the share sheet → *Save to Files*. More than 40 are
+     saved in batches of 40, one tap each.
+   - **Safari on the Mac:** as one `.zip` download.
+5. Everything you didn't keep is left behind. **FOTO_GNS never deletes or
+   changes your originals.** Browsers can't delete files or move them to the
+   Trash, so once your selezioni are saved, you delete the originals yourself
+   (or the whole folder) in Finder or Files.
+
+Selezioni are remembered on the device: open the same photos again and your
+marks come back.
+
+## Impaginazione: layout
 
 1. **Formato:** pick an aspect ratio: 3×2, 2×3, 16×9 or 1×1.
 2. **Misura:** pick a size, and a field appears on the page in the first free spot.

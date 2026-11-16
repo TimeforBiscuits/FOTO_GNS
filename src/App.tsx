@@ -1,23 +1,40 @@
 import { AlertDialog, ReadyDialog } from './app/Dialogs'
+import { CullToolbar } from './cull/CullToolbar'
+import { Curation } from './cull/Curation'
+import { SaveDialog } from './cull/SaveDialog'
+import { useView } from './store/view'
 import { Sheet } from './app/Sheet'
 import { StatusBar } from './app/StatusBar'
 import { Toolbar } from './app/Toolbar'
 import { TopBar } from './app/TopBar'
 
 export default function App() {
+  const view = useView((s) => s.view)
   return (
     <div className="app">
       <TopBar />
       <div className="main">
-        <main className="stage">
-          <Sheet />
-          <Legend />
-        </main>
-        <Toolbar />
+        {view === 'layout' ? (
+          <>
+            <main className="stage">
+              <Sheet />
+              <Legend />
+            </main>
+            <Toolbar />
+          </>
+        ) : (
+          <>
+            <main className="stage">
+              <Curation />
+            </main>
+            <CullToolbar />
+          </>
+        )}
       </div>
       <StatusBar />
       <AlertDialog />
       <ReadyDialog />
+      <SaveDialog />
     </div>
   )
 }
