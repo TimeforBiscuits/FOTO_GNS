@@ -11,13 +11,13 @@ import {
   presetSize,
   type SizeId,
 } from '../model/layout'
-import { exportPdf } from '../pdf/export'
+import { estimateBytes, exportPdf, type Quality } from '../pdf/export'
 import { useActivePage, useDoc, useSelectedField, type Field } from '../store/doc'
-import { Key, LcdField, Led, Panel } from '../ui/controls'
+import { Key, LcdField, Led, Panel, Segmented } from '../ui/controls'
 import { IconImage, IconLock, IconPlus, IconPrint, IconRatio, IconTrash, IconUnlink } from '../ui/icons'
 import { attachTo } from './attach'
 import { SIZE_COLOR } from './colors'
-import { cleanFileName } from './files'
+import { pdfFileName } from './files'
 
 export function Toolbar() {
   const field = useSelectedField()
@@ -233,28 +233,47 @@ function PageThumb({ fields }: { fields: Field[] }) {
 function PrintPanel() {
   const fileName = useDoc((s) => s.fileName)
   const setFileName = useDoc((s) => s.setFileName)
+  const quality = useDoc((s) => s.quality)
+  const setQuality = useDoc((s) => s.setQuality)
   const pages = useDoc((s) => s.pages)
+  useDoc((s) => s.assets)
   const exporting = useDoc((s) => s.exporting)
   const [draft, setDraft] = useState<string | null>(null)
   const photos = pages.reduce((n, p) => n + p.fields.filter((f) => f.photo).length, 0)
+  const mb = estimateBytes(quality) / 1024 / 1024
 
   return (
     <Panel num="05" it="STAMPA" en="Export PDF">
       <label className="field">
-        <span className="field-label">File name</span>
+        <span className="field-label">Name</span>
         <span className="lcd">
           <input
             value={draft ?? fileName}
-            placeholder="FOTO_GNS-date"
+            placeholder="e.g. Tenerife trip"
             onChange={(e) => setDraft(e.target.value)}
             onBlur={() => {
-              if (draft !== null) setFileName(cleanFileName(draft))
+              if (draft !== null) setFileName(draft.trim().slice(0, 80))
               setDraft(null)
             }}
             onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
           />
-          <span className="unit">.pdf</span>
         </span>
+        <span className="file-preview" title="The PDF is dated the day you export it">
+          {pdfFileName(draft ?? fileName)}
+        </span>
+      </label>
+      <label className="field">
+        <span className="field-label">Quality</span>
+        <Segmented<Quality>
+          label="Quality"
+          fill
+          value={quality}
+          onChange={setQuality}
+          options={[
+            { value: 'original', label: 'Originale', sub: 'untouched', title: 'Every photo exactly as it came off the camera: full resolution, never re-compressed' },
+            { value: 'print300', label: 'Compatto', sub: '300 dpi', title: 'Every photo resampled to 300 dpi at its printed size: far smaller files' },
+          ]}
+        />
       </label>
       <dl className="spec">
         <dt>Paper</dt>
@@ -263,15 +282,20 @@ function PrintPanel() {
         <dd>{pages.length}</dd>
         <dt>Photos</dt>
         <dd>{photos}</dd>
-        <dt>Resolution</dt>
-        <dd>{PRINT_DPI} dpi</dd>
+        <dt>Pictures</dt>
+        <dd>{quality === 'original' ? 'original files' : `${PRINT_DPI} dpi · JPEG 95`}</dd>
+        <dt>About</dt>
+        <dd>{photos ? (mb < 1 ? '< 1 MB' : `${Math.round(mb)} MB`) : '—'}</dd>
       </dl>
       <Key variant="signal" className="export-key" onClick={() => void exportPdf()} disabled={exporting}>
         <IconPrint />
         {exporting ? 'Working…' : 'Export PDF'}
       </Key>
       <p className="note">
-        Print on A4 photo paper at <b>100 % / Actual size</b> — turn off “Fit to page” so every photo prints at its true size.
+        {quality === 'original'
+          ? 'Each photo goes into the PDF byte for byte, at full camera resolution, with its colour profile. Nothing is re-compressed.'
+          : 'Each photo is resampled to 300 dpi at its printed size and saved as a high-quality JPEG.'}{' '}
+        Print on A4 photo paper at <b>100 % / Actual size</b> with “Fit to page” off.
       </p>
     </Panel>
   )

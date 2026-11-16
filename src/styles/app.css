@@ -1241,8 +1241,13 @@ select {
 }
 
 .loupe-view img {
-  max-width: 100%;
-  max-height: 100%;
+  /* centred, and fitted to both width and height, whatever the photo's shape */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
   object-fit: contain;
   box-shadow: 0 0 0 1px #000, 6px 6px 0 rgba(0, 0, 0, 0.45);
   outline: 0 solid var(--signal);
@@ -1558,4 +1563,45 @@ select {
   .topbar .key .stack .sub {
     display: none;
   }
+}
+
+.file-preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.file-preview::before {
+  content: '→ ';
+  color: var(--signal-2);
+}
+
+.selects-count {
+  min-width: 26px;
+  padding: 3px 5px;
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+  background: var(--ink);
+  color: var(--signal);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.selects-key {
+  min-height: 60px;
+}
+
+.selects-key > svg {
+  width: 22px;
+  height: 22px;
+}
+
+.selects-key .sub {
+  color: var(--ink);
 }

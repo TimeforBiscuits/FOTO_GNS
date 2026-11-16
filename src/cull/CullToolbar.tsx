@@ -1,8 +1,8 @@
 import { keepCount, useCull, type CullFilter, type CullMode } from '../store/cull'
 import { Key, Panel, Segmented, Toggle } from '../ui/controls'
-import { IconFolder, IconImage, IconStar, IconX } from '../ui/icons'
+import { IconFolder, IconImage, IconX } from '../ui/icons'
 import { canPickFolder, closePhotos, openPhotos } from './open'
-import { saveKeepers, saveMethod, SHARE_BATCH } from './saveKeepers'
+import { createSelects, saveMethod } from './saveKeepers'
 
 export function CullToolbar() {
   const count = useCull((s) => s.items.length)
@@ -146,23 +146,28 @@ function SavePanel() {
   const exported = useCull((s) => s.exported)
   const method = saveMethod()
   const how = {
-    folder: 'Choose a folder (a new, empty one is best). Exact copies of your selezioni are saved there.',
-    share: `The share sheet opens. Choose “Save to Files” and pick a folder. ${kept > SHARE_BATCH ? `More than ${SHARE_BATCH} are saved in batches, one tap each.` : ''}`,
-    zip: 'Your selezioni download as one .zip of exact copies. In Chrome you could pick a folder instead.',
+    folder: 'Choose where it should go. A folder called SELECTS is created there, holding exact copies of your selezioni.',
+    share: 'Your selezioni are packed into SELECTS.zip for “Save to Files”. Tap it once in Files and it opens into the SELECTS folder.',
+    zip: 'Safari can’t create folders, so it downloads SELECTS.zip, which unpacks into the SELECTS folder. In Chrome you can choose where SELECTS goes.',
   }[method]
   return (
-    <Panel num="03" it="ESPORTA" en="Save keepers">
-      <p className="note">{how}</p>
-      <Key variant="signal" className="export-key" disabled={!kept} onClick={() => void saveKeepers()}>
-        <IconStar filled />
-        Save {kept} selezion{kept === 1 ? 'e' : 'i'}
+    <Panel num="03" it="TAGLIO" en="The cull">
+      <Key variant="signal" className="export-key selects-key" disabled={!kept} onClick={() => void createSelects()}>
+        <IconFolder />
+        <span className="stack">
+          <span>Create SELECTS</span>
+          <span className="sub">
+            {kept} selezion{kept === 1 ? 'e' : 'i'} · {count - kept} left behind
+          </span>
+        </span>
       </Key>
+      <p className="note">{how}</p>
       <div className={exported ? 'warn warn--ok' : 'warn'}>
         <b>{exported ? '✓' : '!'}</b>
         <span>
           {exported
-            ? `Saved. The ${count - kept} photo${count - kept === 1 ? '' : 's'} you didn't keep are still in the original folder: delete it, or them, yourself in ${method === 'share' ? 'Files' : 'Finder'}.`
-            : 'FOTO_GNS never deletes anything. Once your selezioni are saved, delete the originals yourself.'}
+            ? `SELECTS is made. The ${count - kept} photo${count - kept === 1 ? '' : 's'} you didn't keep are still in the original folder: delete them, or the folder, yourself in ${method === 'share' ? 'Files' : 'Finder'}.`
+            : 'FOTO_GNS never deletes anything. Once SELECTS is made, delete the originals yourself.'}
         </span>
       </div>
     </Panel>

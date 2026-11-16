@@ -3,6 +3,7 @@
 // the big loupe preview is built on demand and only a few are kept.
 
 import { useEffect, useState } from 'react'
+import { decode, drawUpright } from '../app/decode'
 import { useCull, type CullItem } from '../store/cull'
 
 const IOS = typeof navigator !== 'undefined' && navigator.maxTouchPoints > 1 && /Mac|iPad|iPhone/.test(navigator.userAgent)
@@ -10,46 +11,24 @@ const IOS = typeof navigator !== 'undefined' && navigator.maxTouchPoints > 1 && 
 const THUMB_EDGE = 360
 const LOUPE_EDGE = 2400
 
-/** Decode (honouring the camera's rotation) and shrink to a JPEG whose long edge is at most `edge`. */
-async function downscale(file: Blob, edge: number, quality: number) {
-  let src: CanvasImageSource
-  let w: number
-  let h: number
-  let done = () => {}
-  if (typeof createImageBitmap === 'function') {
-    const bmp = await createImageBitmap(file)
-    src = bmp
-    w = bmp.width
-    h = bmp.height
-    done = () => bmp.close()
-  } else {
-    const url = URL.createObjectURL(file)
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const i = new Image()
-      i.onload = () => resolve(i)
-      i.onerror = () => reject(new Error('decode'))
-      i.src = url
-    })
-    src = img
-    w = img.naturalWidth
-    h = img.naturalHeight
-    done = () => URL.revokeObjectURL(url)
-  }
+/** Decode the right way up and shrink to a JPEG whose long edge is at most `edge`. */
+export async function downscale(file: Blob, edge: number, quality: number) {
+  const d = await decode(file)
   try {
-    const k = Math.min(1, edge / Math.max(w, h))
+    const k = Math.min(1, edge / Math.max(d.w, d.h))
     const canvas = document.createElement('canvas')
-    canvas.width = Math.max(1, Math.round(w * k))
-    canvas.height = Math.max(1, Math.round(h * k))
+    canvas.width = Math.max(1, Math.round(d.w * k))
+    canvas.height = Math.max(1, Math.round(d.h * k))
     const ctx = canvas.getContext('2d')!
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = 'high'
-    ctx.drawImage(src, 0, 0, canvas.width, canvas.height)
+    drawUpright(ctx, d, 0, 0, canvas.width, canvas.height)
     const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', quality))
     canvas.width = canvas.height = 0
     if (!blob) throw new Error('encode')
-    return { url: URL.createObjectURL(blob), w, h }
+    return { url: URL.createObjectURL(blob), w: d.w, h: d.h }
   } finally {
-    done()
+    d.close()
   }
 }
 

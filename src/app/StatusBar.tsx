@@ -48,7 +48,7 @@ export function StatusBar() {
         </span>
       )}
       <span className="meta">
-        A4 · grid {GRID} mm · {COLS}×{ROWS} · {PRINT_DPI} dpi · v0.2 alpha
+        A4 · grid {GRID} mm · {COLS}×{ROWS} · {PRINT_DPI} dpi · v0.3 alpha
       </span>
     </footer>
   )
@@ -78,7 +78,7 @@ function CullStatus({ message }: { message: ReturnType<typeof useRecentMessage> 
           <b>Selezione</b> — {count ? 'P keep · X leave behind · ← → move · G grid · everything not kept is left behind' : 'open a folder of JPGs to start'}
         </span>
       )}
-      <span className="meta">originals are never changed or deleted · v0.2 alpha</span>
+      <span className="meta">originals are never changed or deleted · v0.3 alpha</span>
     </footer>
   )
 }

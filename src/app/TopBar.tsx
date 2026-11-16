@@ -1,8 +1,10 @@
 import { exportPdf } from '../pdf/export'
 import { useDoc } from '../store/doc'
+import { createSelects } from '../cull/saveKeepers'
+import { keepCount, useCull } from '../store/cull'
 import { useView, type ViewId } from '../store/view'
 import { Key, Segmented } from '../ui/controls'
-import { IconChevron, IconPlus, IconPrint } from '../ui/icons'
+import { IconChevron, IconFolder, IconPlus, IconPrint } from '../ui/icons'
 
 export function TopBar() {
   const count = useDoc((s) => s.pages.length)
@@ -61,6 +63,8 @@ export function TopBar() {
 
       <div className="spacer" />
 
+      {view === 'cull' && <SelectsKey />}
+
       {view === 'layout' && (
       <Key variant="signal" onClick={() => void exportPdf()} disabled={exporting} title="Export a 300 dpi PDF">
         <IconPrint />
@@ -68,5 +72,19 @@ export function TopBar() {
       </Key>
       )}
     </header>
+  )
+}
+
+/** The cull, always in reach: every selezione into a SELECTS folder. */
+function SelectsKey() {
+  const kept = useCull((s) => keepCount(s.keep))
+  const count = useCull((s) => s.items.length)
+  if (!count) return null
+  return (
+    <Key variant="signal" onClick={() => void createSelects()} disabled={!kept} title="Copy every selezione into a folder called SELECTS">
+      <IconFolder />
+      SELECTS
+      <span className="selects-count">{kept}</span>
+    </Key>
   )
 }

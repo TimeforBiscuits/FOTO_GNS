@@ -1,6 +1,6 @@
 import { Key } from '../ui/controls'
-import { IconStar } from '../ui/icons'
-import { closeSave, SHARE_BATCH, shareNextBatch, useSave } from './saveKeepers'
+import { IconFolder } from '../ui/icons'
+import { closeSave, shareSelects, useSave } from './saveKeepers'
 
 export function SaveDialog() {
   const phase = useSave((s) => s.phase)
@@ -9,15 +9,15 @@ export function SaveDialog() {
   if (phase.kind === 'progress')
     return (
       <div className="scrim">
-        <div className="dialog dialog--sm" role="dialog" aria-label="Saving">
+        <div className="dialog dialog--sm" role="dialog" aria-label="Creating SELECTS">
           <header className="panel-head">
             <span className="num">…</span>
-            <span className="it">ESPORTA</span>
-            <span className="en">Saving</span>
+            <span className="it">SELECTS</span>
+            <span className="en">Working</span>
           </header>
           <div className="panel-body">
             <p className="dialog-text">
-              Saving {phase.done + 1} of {phase.total}…
+              {phase.label}: {Math.min(phase.done + 1, phase.total)} of {phase.total}…
             </p>
             <div className="meter">
               <span style={{ width: `${(phase.done / phase.total) * 100}%` }} />
@@ -27,43 +27,34 @@ export function SaveDialog() {
       </div>
     )
 
-  if (phase.kind === 'share') {
-    const total = phase.files.length
-    const end = Math.min(total, phase.next + SHARE_BATCH)
-    const batched = total > SHARE_BATCH
+  if (phase.kind === 'share')
     return (
       <div className="scrim">
         <div className="dialog dialog--sm" role="dialog" aria-labelledby="share-title">
           <header className="panel-head">
             <span className="num">★</span>
-            <span className="it">ESPORTA</span>
+            <span className="it">SELECTS</span>
             <span className="en">Save to Files</span>
           </header>
           <div className="panel-body">
             <h2 id="share-title" className="dialog-title">
-              {batched ? `Selezioni ${phase.next + 1}–${end} of ${total}` : `${total} selezion${total === 1 ? 'e' : 'i'}`}
+              SELECTS.zip is ready
             </h2>
             <p className="dialog-text">
-              Tap Save, then choose “Save to Files” and pick the folder.
-              {batched && ' Use the same folder for every batch.'}
+              Tap Save, choose “Save to Files” and pick where SELECTS should go. Then, in Files, tap SELECTS.zip once: it opens into the
+              SELECTS folder.
             </p>
-            {batched && (
-              <div className="meter">
-                <span style={{ width: `${(phase.next / total) * 100}%` }} />
-              </div>
-            )}
             <div className="dialog-actions">
               <Key onClick={closeSave}>Cancel</Key>
-              <Key variant="signal" onClick={() => void shareNextBatch()}>
-                <IconStar filled />
-                Save{batched ? ' batch' : ''}
+              <Key variant="signal" onClick={() => void shareSelects()}>
+                <IconFolder />
+                Save
               </Key>
             </div>
           </div>
         </div>
       </div>
     )
-  }
 
   return (
     <div className="scrim">
@@ -71,16 +62,16 @@ export function SaveDialog() {
         <header className="panel-head">
           <span className="num">✓</span>
           <span className="it">FATTO</span>
-          <span className="en">Selezioni saved</span>
+          <span className="en">SELECTS created</span>
         </header>
         <div className="panel-body">
           <h2 id="done-title" className="dialog-title">
-            {phase.kept} kept · {phase.rejected} left behind
+            {phase.kept} in SELECTS · {phase.rejected} left behind
           </h2>
           <p className="dialog-text">{phase.how}</p>
           <p className="dialog-text">
-            Nothing was deleted. Once you've checked the saved copies, delete the {phase.rejected} you didn't keep (or the whole original folder)
-            yourself.
+            Nothing was deleted. Once you've checked SELECTS, delete the originals yourself: the {phase.rejected} you didn't keep, or the whole
+            original folder.
           </p>
           <div className="dialog-actions">
             <Key variant="ink" onClick={closeSave}>

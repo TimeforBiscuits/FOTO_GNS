@@ -26,15 +26,17 @@ Go through a folder of JPGs and keep only the ones you want.
    toggle, **← →** move, **G** grid / loupe. On iPad, swipe to move and
    double-tap to keep, or use the ★ on any thumbnail. *Next photo after
    deciding* moves on automatically.
-4. **Save selezioni** saves exact, untouched copies of the keepers:
-   - **Chrome on the Mac:** into a folder you choose.
-   - **iPad:** through the share sheet → *Save to Files*. More than 40 are
-     saved in batches of 40, one tap each.
-   - **Safari on the Mac:** as one `.zip` download.
+4. **Create SELECTS** (the orange key, top right) makes a folder called
+   `SELECTS` holding exact, untouched copies of every keeper:
+   - **Chrome on the Mac:** choose where; `SELECTS` is created right there.
+   - **Safari on the Mac:** browsers there can't create folders, so you get
+     `SELECTS.zip`, which Safari unpacks into a `SELECTS` folder in Downloads.
+   - **iPad:** `SELECTS.zip` goes to the share sheet → *Save to Files*; tap it
+     once in Files and it opens into the `SELECTS` folder.
 5. Everything you didn't keep is left behind. **FOTO_GNS never deletes or
    changes your originals.** Browsers can't delete files or move them to the
-   Trash, so once your selezioni are saved, you delete the originals yourself
-   (or the whole folder) in Finder or Files.
+   Trash, so once SELECTS is made, delete the originals yourself (or the whole
+   folder) in Finder or Files.
 
 Selezioni are remembered on the device: open the same photos again and your
 marks come back.
@@ -53,7 +55,9 @@ marks come back.
    field's (within 1 %), it's refused with a message. Nothing is ever cropped
    or stretched to fit.
 5. Add more A4 pages as needed (**Pagine**, or **+ Page** at the top).
-6. **Stampa / Export PDF:** in Chrome on the Mac it asks where to save. In
+6. **Stampa / Export PDF.** Type a name and the PDF is called
+   `DDMMYY_name.pdf`, dated the day you export: "Tenerife trip" on
+   16 November 2026 → `161126_tenerife-trip.pdf`. In Chrome on the Mac it asks where to save. In
    Safari it downloads. On iPad it opens the share sheet, where you choose
    *Save to Files*.
 
@@ -78,10 +82,21 @@ The boxes are defined in `src/model/layout.ts` (`PRESET_BOX`).
 
 ## Print quality
 
-Each photo is resampled to exactly 300 dpi at its field size and embedded as
-a high-quality JPEG. A photo with fewer pixels than that is used at its own
-resolution, never upscaled. The Campo panel warns when a photo would print
-under 200 dpi.
+**Originale** (the default) puts every JPEG into the PDF byte for byte: the
+camera's full resolution, never decoded or re-compressed, with its embedded
+colour profile (so Adobe RGB and Display P3 photos print true). Turning
+sideways-stored portrait shots upright, and trimming the hair of difference
+the 1 % ratio check allows, are done by the PDF itself, so no pixel changes.
+PNGs go in losslessly. Other formats (HEIC, WebP) are converted once at full
+resolution, JPEG quality 100. Files are as big as your photos: often
+5–15 MB per photo.
+
+**Compatto** resamples each photo to exactly 300 dpi at its printed size and
+saves it as a JPEG at quality 95. The files are much smaller and look the
+same in most prints.
+
+Camera JPEGs are 8 bits per channel, so that's what the PDF holds. A 16-bit
+PDF made from them would hold no more detail.
 
 ## Development
 

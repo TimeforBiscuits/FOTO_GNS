@@ -1,4 +1,5 @@
 import { describeRatio, RATIOS, ratioMatches } from '../model/layout'
+import { downscale } from '../cull/previews'
 import { uid, useDoc, type Field } from '../store/doc'
 
 /** Open the platform's file dialogue. Must be called straight from a tap or click. */
@@ -21,18 +22,11 @@ function pickImage(): Promise<File | null> {
   })
 }
 
-/** Read a picture's size as it will display: browsers apply the camera's rotation tag. */
-export const measure = (blob: Blob) =>
-  new Promise<{ w: number; h: number; url: string }>((resolve, reject) => {
-    const url = URL.createObjectURL(blob)
-    const img = new Image()
-    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight, url })
-    img.onerror = () => {
-      URL.revokeObjectURL(url)
-      reject(new Error('decode'))
-    }
-    img.src = url
-  })
+/**
+ * The picture's upright size, plus a screen-sized upright preview for the
+ * sheet. The original file is kept untouched for the PDF.
+ */
+export const measure = (blob: Blob) => downscale(blob, 2000, 0.9)
 
 export async function attachTo(field: Field) {
   const file = await pickImage()

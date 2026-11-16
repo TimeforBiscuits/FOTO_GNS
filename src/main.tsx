@@ -18,11 +18,11 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 }
 
 // The last session comes back before the first paint of the app.
-restore().finally(() => {
+restore().then((restored) => {
   startAutosave()
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <App />
+      <App restored={restored} />
     </StrictMode>,
   )
 })

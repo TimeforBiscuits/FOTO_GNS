@@ -17,6 +17,23 @@ export const cleanFileName = (raw: string) =>
     .replace(/^[\s.]+|[\s.]+$/g, '')
     .slice(0, 100)
 
+/** Turn a typed name into a file-name slug: "Tenerife trip" → "tenerife-trip". */
+export const slugify = (raw: string) =>
+  raw
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\.pdf$/, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80)
+
+/** DDMMYY, e.g. 161126 for 16 November 2026. */
+export const ddmmyy = (d = new Date()) => [d.getDate(), d.getMonth() + 1, d.getFullYear() % 100].map((n) => String(n).padStart(2, '0')).join('')
+
+/** The PDF's name: DDMMYY_custom-name.pdf, dated the day it's exported. */
+export const pdfFileName = (custom: string, d = new Date()) => `${ddmmyy(d)}_${slugify(custom) || 'foto-gns'}.pdf`
+
 /** The file's base name: the project's name, or a dated default. */
 export const baseName = (name: string | undefined) => cleanFileName(name ?? '') || `FOTO_GNS-${stamp()}`
 

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { Quality } from '../pdf/export'
 import {
   clampToArea,
   findSpot,
@@ -53,6 +54,7 @@ export interface DocState {
   selectedId: string | null
   ratio: RatioId
   fileName: string
+  quality: Quality
   assets: Record<string, Asset>
   message: Message | null
   alert: Alert | null
@@ -71,11 +73,12 @@ export interface DocState {
   deletePage: (index: number) => void
   setActivePage: (index: number) => void
   setFileName: (name: string) => void
+  setQuality: (q: Quality) => void
   say: (text: string, tone?: Message['tone']) => void
   showAlert: (a: Alert | null) => void
   setExporting: (on: boolean) => void
   setReady: (f: File | null) => void
-  load: (pages: Page[], assets: Record<string, Asset>, fileName: string) => void
+  load: (pages: Page[], assets: Record<string, Asset>, fileName: string, quality?: Quality) => void
 }
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4)
@@ -90,6 +93,7 @@ export const useDoc = create<DocState>((set, get) => ({
   selectedId: null,
   ratio: '3x2',
   fileName: '',
+  quality: 'original',
   assets: {},
   message: null,
   alert: null,
@@ -147,6 +151,8 @@ export const useDoc = create<DocState>((set, get) => ({
 
   setFileName: (fileName) => set({ fileName }),
 
+  setQuality: (quality) => set({ quality }),
+
   say: (text, tone = 'info') => set({ message: { text, tone, at: Date.now() } }),
 
   showAlert: (alert) => set({ alert }),
@@ -155,7 +161,8 @@ export const useDoc = create<DocState>((set, get) => ({
 
   setReady: (ready) => set({ ready }),
 
-  load: (pages, assets, fileName) => set({ pages: pages.length ? pages : [newPage()], assets, fileName, activePage: 0, selectedId: null }),
+  load: (pages, assets, fileName, quality = 'original') =>
+    set({ pages: pages.length ? pages : [newPage()], assets, fileName, quality, activePage: 0, selectedId: null }),
 }))
 
 export const useActivePage = () => useDoc((s) => s.pages[s.activePage])

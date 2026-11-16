@@ -2,6 +2,8 @@
 // own blob. Photos never leave the device.
 
 import { del, get, keys, set } from 'idb-keyval'
+import { downscale } from '../cull/previews'
+import type { Quality } from '../pdf/export'
 import { useDoc, type Asset, type Page } from './doc'
 
 const DOC_KEY = 'foto-gns:doc'
@@ -11,26 +13,30 @@ interface Saved {
   v: 1
   pages: Page[]
   fileName: string
+  quality?: Quality
 }
 
-export async function restore() {
+/** Bring back the last session. Resolves true if there was one with something in it. */
+export async function restore(): Promise<boolean> {
   try {
     const saved = (await get(DOC_KEY)) as Saved | undefined
-    if (!saved || saved.v !== 1) return
+    if (!saved || saved.v !== 1) return false
     const ids = new Set(saved.pages.flatMap((p) => p.fields.map((f) => f.photo?.assetId).filter((x): x is string => !!x)))
     const assets: Record<string, Asset> = {}
     for (const id of ids) {
       const rec = (await get(assetKey(id))) as { blob: Blob; w: number; h: number } | undefined
-      if (rec) assets[id] = { ...rec, url: URL.createObjectURL(rec.blob) }
+      if (rec) assets[id] = { ...rec, url: await downscale(rec.blob, 2000, 0.9).then((r) => r.url, () => URL.createObjectURL(rec.blob)) }
     }
     // A photo whose blob went missing leaves its field empty rather than broken.
     const pages = saved.pages.map((p) => ({
       ...p,
       fields: p.fields.map((f) => (f.photo && !assets[f.photo.assetId] ? { ...f, photo: undefined } : f)),
     }))
-    useDoc.getState().load(pages, assets, saved.fileName ?? '')
+    useDoc.getState().load(pages, assets, saved.fileName ?? '', saved.quality ?? 'original')
+    return pages.some((p) => p.fields.length > 0)
   } catch {
     // Private browsing or blocked storage: start fresh.
+    return false
   }
 }
 
@@ -49,7 +55,7 @@ async function save() {
       await set(assetKey(id), { blob: a.blob, w: a.w, h: a.h })
       savedAssets.add(id)
     }
-    await set(DOC_KEY, { v: 1, pages: s.pages, fileName: s.fileName } satisfies Saved)
+    await set(DOC_KEY, { v: 1, pages: s.pages, fileName: s.fileName, quality: s.quality } satisfies Saved)
     // Drop photos no field uses any more.
     for (const k of await keys()) {
       const key = String(k)
@@ -69,7 +75,7 @@ export function startAutosave() {
   // Anything already in storage when we start counts as saved.
   for (const p of useDoc.getState().pages) for (const f of p.fields) if (f.photo) savedAssets.add(f.photo.assetId)
   useDoc.subscribe((s, prev) => {
-    if (s.pages === prev.pages && s.fileName === prev.fileName) return
+    if (s.pages === prev.pages && s.fileName === prev.fileName && s.quality === prev.quality) return
     clearTimeout(timer)
     timer = setTimeout(save, 400)
   })
