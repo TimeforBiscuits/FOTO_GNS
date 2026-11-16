@@ -1,0 +1,52 @@
+import { exportPdf } from '../pdf/export'
+import { useDoc } from '../store/doc'
+import { Key } from '../ui/controls'
+import { IconChevron, IconPlus, IconPrint } from '../ui/icons'
+
+export function TopBar() {
+  const count = useDoc((s) => s.pages.length)
+  const active = useDoc((s) => s.activePage)
+  const setActivePage = useDoc((s) => s.setActivePage)
+  const addPage = useDoc((s) => s.addPage)
+  const exporting = useDoc((s) => s.exporting)
+  const pad = (n: number) => String(n).padStart(2, '0')
+
+  return (
+    <header className="topbar">
+      <div className="brand">
+        <div className="brand-word">
+          <b>
+            <i className="slashes">//</i>FOTO<i>_</i>GNS
+          </b>
+          <small>Foto Gans · Photo Sheets</small>
+        </div>
+      </div>
+
+      <div className="topbar-group" role="group" aria-label="Page">
+        <span className="topbar-label">Pagina</span>
+        <Key square size="sm" onClick={() => setActivePage(active - 1)} disabled={active === 0} aria-label="Previous page">
+          <IconChevron dir="left" />
+        </Key>
+        <span className="lcd page-lcd" aria-live="polite">
+          {pad(active + 1)}
+          <span className="unit">/</span>
+          {pad(count)}
+        </span>
+        <Key square size="sm" onClick={() => setActivePage(active + 1)} disabled={active === count - 1} aria-label="Next page">
+          <IconChevron dir="right" />
+        </Key>
+        <Key size="sm" onClick={addPage} title="Add an A4 page">
+          <IconPlus />
+          Page
+        </Key>
+      </div>
+
+      <div className="spacer" />
+
+      <Key variant="signal" onClick={() => void exportPdf()} disabled={exporting} title="Export a 300 dpi PDF">
+        <IconPrint />
+        Stampa
+      </Key>
+    </header>
+  )
+}
