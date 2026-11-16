@@ -3,8 +3,9 @@ import { useDoc } from '../store/doc'
 import '../styles/splash.css'
 
 // The title card, from the same 1995 Milanese studio reel as PJKT_GNS.
-// It plays while the last session is restored, then opens like a camera
-// shutter. Tap or press any key to skip.
+// A camera draws itself while the last session is restored, then the
+// shutter fires: a white flash, and the app is there. Tap or press any key
+// to skip.
 
 const SEEN = 'foto_gns.splash'
 
@@ -38,6 +39,22 @@ const ticks = (() => {
   return d
 })()
 
+/** A minimal camera, drawn in a few strokes; its lens lights up before the shot. */
+function Camera() {
+  return (
+    <svg className="sp-camera" viewBox="0 0 120 88" aria-hidden="true">
+      {/* body, with the prism hump */}
+      <path className="sp-stroke sp-stroke--body" pathLength={1} d="M10 26 H40 L47 15 H73 L80 26 H110 V78 H10 Z" />
+      {/* shutter button and viewfinder window */}
+      <path className="sp-stroke sp-stroke--bits" pathLength={1} d="M88 20 H100 M18 34 H28" />
+      {/* lens: barrel and glass */}
+      <circle className="sp-stroke sp-stroke--lens" pathLength={1} cx="60" cy="51" r="19" />
+      <circle className="sp-glass" cx="60" cy="51" r="11" />
+      <circle className="sp-glint" cx="55.5" cy="46.5" r="2.4" />
+    </svg>
+  )
+}
+
 function Card({ pct }: { pct: number }) {
   const status = STATUS[Math.min(STATUS.length - 1, Math.floor((pct / 100) * (STATUS.length - 1) + 0.0001))]
   return (
@@ -47,20 +64,13 @@ function Card({ pct }: { pct: number }) {
       <i className="sp-crop sp-crop--tr" />
       <i className="sp-crop sp-crop--bl" />
       <i className="sp-crop sp-crop--br" />
-      <div className="sp-fold" />
-
       <header className="sp-top">
         <span>FOTO_GNS / N° 002 — EDIZIONE STUDIO</span>
         <span>MILANO · MCMXCV</span>
       </header>
 
       <div className="sp-title">
-        <div className="sp-finder" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-          <i />
-        </div>
+        <Camera />
         <h1 className="sp-word" aria-label="FOTO_GNS">
           <span className="sp-slashes">//</span>
           <span className="sp-letters">
@@ -70,7 +80,6 @@ function Card({ pct }: { pct: number }) {
         </h1>
         <div className="sp-rule" />
         <p className="sp-sub">FOTO GANS — SELEZIONE E STAMPA</p>
-        <p className="sp-tag">Photos, culled and laid out true to the millimetre.</p>
       </div>
 
       <div className="sp-ruler">
@@ -132,7 +141,7 @@ export function Splash({ restored, onDone }: { restored: boolean; onDone: () => 
         onDone()
         if (restored) useDoc.getState().say('Bentornato — welcome back. Your last layout is restored.')
       },
-      reducedMotion() ? 200 : 760,
+      reducedMotion() ? 200 : 700,
     )
   }
 
@@ -161,12 +170,8 @@ export function Splash({ restored, onDone }: { restored: boolean; onDone: () => 
 
   return (
     <div className={cls.join(' ')} role="status" aria-label="Loading FOTO_GNS">
-      <div className="sp-door sp-door--top">
-        <Card pct={pct} />
-      </div>
-      <div className="sp-door sp-door--bottom" aria-hidden="true">
-        <Card pct={pct} />
-      </div>
+      <Card pct={pct} />
+      <div className="sp-flash" aria-hidden="true" />
     </div>
   )
 }
